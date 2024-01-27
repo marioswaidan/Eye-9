@@ -39,6 +39,10 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
         view.insertSubview(roomCaptureView, at: 0)
     }
     
+    func captureSession(_ session: RoomCaptureSession, didUpdate room: CapturedRoom){
+        session.arSession.currentFrame?.sceneDepth?.depthMap
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         startSession()
@@ -79,6 +83,7 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
         if isScanning { stopSession() } else { cancelScanning(sender) }
         self.exportButton?.isEnabled = false
         self.activityIndicator?.startAnimating()
+
     }
 
     @IBAction func cancelScanning(_ sender: UIBarButtonItem) {
