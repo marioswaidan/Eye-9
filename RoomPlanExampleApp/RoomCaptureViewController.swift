@@ -1,10 +1,3 @@
-/*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-The sample app's main view controller that manages the scanning process.
-*/
-
 import UIKit
 import RoomPlan
 
@@ -23,6 +16,19 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     
     private var finalResults: CapturedRoom?
     
+    private var timer: Timer?
+    private var interval: TimeInterval = 5
+    private var distance: Double = 5
+    
+    // Update the timer based on the current interval
+    private func updateTimer() {
+        // Invalidate the existing timer if it exists
+        timer?.invalidate()
+
+        // Schedule a new timer
+        timer = Timer.scheduledTimer(timeInterval: interval, target: self, selector: #selector(triggerHapticFeedback), userInfo: nil, repeats: true)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -39,8 +45,95 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
         view.insertSubview(roomCaptureView, at: 0)
     }
     
-    func captureSession(_ session: RoomCaptureSession, didUpdate room: CapturedRoom){
-        session.arSession.currentFrame?.sceneDepth?.depthMap
+    func captureSession(_ session: RoomCaptureSession, didUpdate room: CapturedRoom) {
+        if let depthMap = session.arSession.currentFrame?.sceneDepth?.depthMap {
+            // Access the depth map's pixel buffer.
+            CVPixelBufferLockBaseAddress(depthMap, .readOnly)
+            let width = CVPixelBufferGetWidth(depthMap)
+            let height = CVPixelBufferGetHeight(depthMap)
+            
+            // Assuming you want the depth at a specific point (e.g., center of the depth map).
+            let x = width / 2
+            let y = height / 2
+            
+            // Access the data
+//            if let baseAddress = CVPixelBufferGetBaseAddress(depthMap) {
+//                let floatBuffer = baseAddress.assumingMemoryBound(to: Float.self)
+//                
+//                // Calculate the index for the desired pixel
+//                let index = x + y * width
+//                
+//                // Get the distance as a float
+//                let distance = floatBuffer[index]
+//                
+//                while distance < 0.3 && distance >= 0.2 {
+//                    let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+//                    feedbackGenerator.prepare()
+//                    feedbackGenerator.impactOccurred()
+//                    
+//                }
+//                
+//                while distance < 0.2 && distance >= 0.1 {
+//                    let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+//                    feedbackGenerator.prepare()
+//                    feedbackGenerator.impactOccurred()
+//                }
+//                
+//                
+//                
+//                while distance < 0.1 {
+//                    let feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
+//                    feedbackGenerator.prepare()
+//                    feedbackGenerator.impactOccurred()
+//                }
+//                
+//                // Use the distance variable as needed
+//                print("Distance at (\(x), \(y)): \(distance) meters")
+//            }
+            
+            if let baseAddress = CVPixelBufferGetBaseAddress(depthMap) {
+                let floatBuffer = baseAddress.assumingMemoryBound(to: Float.self)
+                let index = x + y * width
+                let distance = floatBuffer[index]
+
+                DispatchQueue.main.async {
+                    self.distance = Double(distance);
+                    self.setInterval()
+                }
+            }
+            
+            CVPixelBufferUnlockBaseAddress(depthMap, .readOnly)
+        }
+    }
+    
+    // Function to update the interval
+    func setInterval() {
+        // If you want to change frequency, make newInterval smaller
+        let newInterval = self.distance / 30;
+        self.interval = newInterval
+      //  print("Dista - I", self.interval)
+        updateTimer()
+        
+    }
+
+
+    
+    
+    @objc private func triggerHapticFeedback() {
+        let feedbackGenerator: UIImpactFeedbackGenerator
+        print("Distance", distance)
+        switch self.distance {
+        case 3...5:
+            feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        case 2...3:
+            feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+        case ..<2:
+            feedbackGenerator = UIImpactFeedbackGenerator(style: .heavy)
+        default:
+            return
+        }
+        feedbackGenerator.prepare()
+        feedbackGenerator.impactOccurred()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -80,12 +173,21 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     }
     
     @IBAction func doneScanning(_ sender: UIBarButtonItem) {
-        if isScanning { stopSession() } else { cancelScanning(sender) }
+        if isScanning {
+            stopSession()
+            stopHapticFeedbackTimer() // Add this line to stop the timer
+        } else {
+            cancelScanning(sender)
+        }
         self.exportButton?.isEnabled = false
         self.activityIndicator?.startAnimating()
-
     }
-
+    
+    private func stopHapticFeedbackTimer() {
+        timer?.invalidate()
+        timer = nil // Optionally set the timer to nil
+    }
+        
     @IBAction func cancelScanning(_ sender: UIBarButtonItem) {
         navigationController?.dismiss(animated: true)
     }
@@ -134,5 +236,9 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
             self.exportButton?.alpha = 1.0
         }
     }
+    
+    // Don't forget to invalidate the timer when the view controller is deinitialized
+    deinit {
+        timer?.invalidate()
+    }
 }
-
