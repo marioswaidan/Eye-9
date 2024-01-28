@@ -1,5 +1,6 @@
 import UIKit
 import RoomPlan
+import AVFoundation
 
 class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, RoomCaptureSessionDelegate {
     
@@ -15,26 +16,40 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     private var roomCaptureSessionConfig: RoomCaptureSession.Configuration = RoomCaptureSession.Configuration()
     
     private var finalResults: CapturedRoom?
+    private var hapticFeedbackCount = 0
+
     
     private var timer: Timer?
+    private var beepTimer: Timer?
+
     private var interval: TimeInterval = 5
+    private var soundInterval: TimeInterval = 5
     private var distance: Double = 5
+    
+    private var audioPlayer: AVAudioPlayer?
+    private let beepSoundURL: URL? = Bundle.main.url(forResource: "beep", withExtension: "mp3")
+
     
     // Update the timer based on the current interval
     private func updateTimer() {
-        // Invalidate the existing timer if it exists
+        // Invalidate the existing timers if they exist
         timer?.invalidate()
+        beepTimer?.invalidate()
 
-        // Schedule a new timer
+        // Schedule new timer for haptic feedback
         timer = Timer.scheduledTimer(timeInterval: interval, target: self, selector: #selector(triggerHapticFeedback), userInfo: nil, repeats: true)
+
+        // Schedule beep timer if distance is less than 5
+        if distance < 5.0 {
+            beepTimer = Timer.scheduledTimer(timeInterval: soundInterval, target: self, selector: #selector(playBeepSound), userInfo: nil, repeats: true)
+        }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Set up after loading the view.
         setupRoomCaptureView()
         activityIndicator?.stopAnimating()
+        setupAudioPlayer() // Initialize audio player
     }
     
     private func setupRoomCaptureView() {
@@ -44,6 +59,20 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
         
         view.insertSubview(roomCaptureView, at: 0)
     }
+    
+    private func setupAudioPlayer() {
+        if let url = beepSoundURL {
+            do {
+                audioPlayer = try AVAudioPlayer(contentsOf: url)
+                audioPlayer?.prepareToPlay()
+            } catch {
+                print("Audio player setup failed: \(error)")
+            }
+        } else {
+            print("Unable to find the beep sound file.")
+        }
+    }
+
     
     func captureSession(_ session: RoomCaptureSession, didUpdate room: CapturedRoom) {
         if let depthMap = session.arSession.currentFrame?.sceneDepth?.depthMap {
@@ -108,12 +137,21 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     
     // Function to update the interval
     func setInterval() {
-        // If you want to change frequency, make newInterval smaller
-        let newInterval = self.distance / 30;
-        self.interval = newInterval
-      //  print("Dista - I", self.interval)
+        // Calculate beep rate based on the distance
+        if distance < 5.0 {
+            // As distance decreases, the soundInterval decreases (sound plays more frequently)
+            self.soundInterval = max(0.5, distance) // Ensures a minimum interval for sound
+            
+        let hapticInterval = self.distance / 30
+        self.interval = hapticInterval
+
+
+        } else {
+            // Disable beep sound if distance is 5 or more
+            self.soundInterval = Double.greatestFiniteMagnitude
+        }
+
         updateTimer()
-        
     }
 
 
@@ -121,7 +159,6 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     
     @objc private func triggerHapticFeedback() {
         let feedbackGenerator: UIImpactFeedbackGenerator
-        print("Distance", distance)
         switch self.distance {
         case 3...5:
             feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
@@ -134,7 +171,22 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
         }
         feedbackGenerator.prepare()
         feedbackGenerator.impactOccurred()
+
+        // Increment and check the counter
+        hapticFeedbackCount += 1
+        if hapticFeedbackCount >= 5 {
+            playBeepSound()
+            hapticFeedbackCount = 0
+        }
     }
+
+    
+    @objc private func playBeepSound() {
+        if distance < 5.0 {
+            audioPlayer?.play()
+        }
+    }
+
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -156,7 +208,11 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     private func stopSession() {
         isScanning = false
         roomCaptureView?.captureSession.stop()
-        
+
+        // Invalidate beep timer and stop beep sound
+        beepTimer?.invalidate()
+        audioPlayer?.stop()
+
         setCompleteNavBar()
     }
     
@@ -240,5 +296,7 @@ class RoomCaptureViewController: UIViewController, RoomCaptureViewDelegate, Room
     // Don't forget to invalidate the timer when the view controller is deinitialized
     deinit {
         timer?.invalidate()
+        beepTimer?.invalidate()
+        audioPlayer?.stop()
     }
 }
