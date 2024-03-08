@@ -15,9 +15,7 @@
 		ACEF94BA2820AD2400776A9D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ACEF94B92820AD2400776A9D /* Assets.xcassets */; };
 		ACEF94BD2820AD2400776A9D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ACEF94BB2820AD2400776A9D /* LaunchScreen.storyboard */; };
 		ACEF94C62820AF6600776A9D /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEF94C52820AF6600776A9D /* OnboardingViewController.swift */; };
-		E3E68E282B6609A300B031AA /* SpartaHack-9 in Resources */ = {isa = PBXBuildFile; fileRef = E3E68E272B6609A200B031AA /* SpartaHack-9 */; };
 		E3E68E2A2B6609E200B031AA /* beep.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = E3E68E292B6609E200B031AA /* beep.mp3 */; };
-		E3E68E2C2B6609EE00B031AA /* SpartaHack-9 in Resources */ = {isa = PBXBuildFile; fileRef = E3E68E2B2B6609EE00B031AA /* SpartaHack-9 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,9 +32,7 @@
 		ACEF94BE2820AD2400776A9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ACEF94C52820AF6600776A9D /* OnboardingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		CD4891E2C9F3F7012DE25B49 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
-		E3E68E272B6609A200B031AA /* SpartaHack-9 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "SpartaHack-9"; sourceTree = "<group>"; };
 		E3E68E292B6609E200B031AA /* beep.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = beep.mp3; sourceTree = "<group>"; };
-		E3E68E2B2B6609EE00B031AA /* SpartaHack-9 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "SpartaHack-9"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,8 +57,6 @@
 		ACEF94A42820AD2300776A9D = {
 			isa = PBXGroup;
 			children = (
-				E3E68E272B6609A200B031AA /* SpartaHack-9 */,
-				E3E68E2B2B6609EE00B031AA /* SpartaHack-9 */,
 				05C7567A6B268FC70FFB0FCC /* README.md */,
 				ACEF94AF2820AD2300776A9D /* RoomPlanExampleApp */,
 				ACEF94AE2820AD2300776A9D /* Products */,
@@ -164,10 +158,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				71B6638528D0CABC00635A15 /* UnsupportedDevice.storyboard in Resources */,
-				E3E68E2C2B6609EE00B031AA /* SpartaHack-9 in Resources */,
 				ACEF94BD2820AD2400776A9D /* LaunchScreen.storyboard in Resources */,
 				E3E68E2A2B6609E200B031AA /* beep.mp3 in Resources */,
-				E3E68E282B6609A300B031AA /* SpartaHack-9 in Resources */,
 				ACEF94BA2820AD2400776A9D /* Assets.xcassets in Resources */,
 				ACEF94B82820AD2300776A9D /* Main.storyboard in Resources */,
 			);
